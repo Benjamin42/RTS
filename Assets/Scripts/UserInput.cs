@@ -5,7 +5,7 @@ using RTS;
 public class UserInput : MonoBehaviour {
 
 	void Start () {
-		
+
 	}
 
 	// Update is called once per frame
@@ -14,7 +14,6 @@ public class UserInput : MonoBehaviour {
 		RotateCamera();
 
 		if (Input.GetKey (KeyCode.Escape)) {
-			Debug.Log ("Button clicked !");
 			#if UNITY_EDITOR
 			UnityEditor.EditorApplication.isPlaying = false;
 			#else
@@ -68,20 +67,39 @@ public class UserInput : MonoBehaviour {
 		}
 	}
 
-	private void RotateCamera() {
-		Vector3 origin = Camera.main.transform.eulerAngles;
-		Vector3 destination = origin;
+	private Vector3 mouseOrigin;
+	private bool isPanning;
 
-		// TODO : pivoter la caméra par rapport à l'objet pointé (prendre en compte l'angle)
-		if(Input.GetKey(KeyCode.A)) {
-			destination.y -= ResourceManager.ScrollSpeed;
-		} else if (Input.GetKey(KeyCode.E)) {
-			destination.y += ResourceManager.ScrollSpeed;
+	private void RotateCamera() {
+		
+		if (Input.GetMouseButtonDown (1)) 
+		{
+			//right click was pressed    
+			isPanning = true;
+			mouseOrigin = Input.mousePosition;
 		}
 
-		//if a change in position is detected perform the necessary update
-		if(destination != origin) {
-			Camera.main.transform.eulerAngles = Vector3.MoveTowards(origin, destination, Time.deltaTime * ResourceManager.RotateSpeed);
+
+		// cancel on button release
+		if (!Input.GetMouseButton (1)) 
+		{
+			isPanning = false;
+		}
+
+		//move camera on X & Y
+		if (isPanning) 
+		{
+			Vector3 pos     = Camera.main.ScreenToViewportPoint (Input.mousePosition - mouseOrigin);
+
+			// update x and y but not z
+			Vector3 move     = new Vector3 (pos.y * ResourceManager.RotateSpeed, pos.x * ResourceManager.RotateSpeed, 0);
+
+			//Camera.main.transform.Translate (move, Space.Self);
+
+			Camera.main.transform.Rotate (move, Space.World);
+
+			//Vector3 origin = Camera.main.transform.eulerAngles;
+			//Camera.main.transform.eulerAngles = Vector3.MoveTowards(origin, move, Time.deltaTime * ResourceManager.RotateSpeed);
 		}
 	}
 }
